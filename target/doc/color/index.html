@@ -1,0 +1,248 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Crate `color` is an ANSI color package to output colorized or SGR defined output to the standard output. The API can be used in several way, pick one that suits you."><title>color - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="color" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.0 (88d9e12ae 2026-08-18)" data-channel="1.98.0" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate color</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../color/index.html">color</a><span class="version">1.19.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#constants" title="Constants">Constants</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>color</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/color/lib.rs.html#1-225">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Crate <code>color</code> is an ANSI color package to output colorized or SGR defined
+output to the standard output. The API can be used in several way, pick one
+that suits you.</p>
+<p>This is a line-by-line port of <a href="https://github.com/fatih/color">github.com/fatih/color</a>
+(v1.19.0). The Go API is preserved verbatim, adjusted only for Rust naming
+conventions (<code>New</code> → <a href="struct.Color.html#method.new" title="associated function color::Color::new"><code>Color::new</code></a>, <code>SprintFunc</code> → <a href="struct.Color.html#method.sprint_func" title="method color::Color::sprint_func"><code>Color::sprint_func</code></a>,
+<code>FgRed</code> → <a href="constant.FG_RED.html" title="constant color::FG_RED"><code>FG_RED</code></a>, …).</p>
+<p>Use simple and default helper functions with predefined foreground colors:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::{cyan, blue, red, yellow, magenta, hi_green, hi_black, hi_white, vals, NO_ARGS};
+
+cyan(<span class="string">"Prints text in cyan."</span>, NO_ARGS);
+
+<span class="comment">// a newline will be appended automatically
+</span>blue(<span class="string">"Prints %s in blue."</span>, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"text"</span>]);
+
+<span class="comment">// More default foreground colors..
+</span>red(<span class="string">"We have red"</span>, NO_ARGS);
+yellow(<span class="string">"Yellow color too!"</span>, NO_ARGS);
+magenta(<span class="string">"And many others .."</span>, NO_ARGS);
+
+<span class="comment">// Hi-intensity colors
+</span>hi_green(<span class="string">"Bright green color."</span>, NO_ARGS);
+hi_black(<span class="string">"Bright black means gray.."</span>, NO_ARGS);
+hi_white(<span class="string">"Shiny white color!"</span>, NO_ARGS);</code></pre></div>
+<p>However, there are times when custom color mixes are required. Below are some
+examples to create custom color objects and use the print functions of each
+separate color object.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::{vals, Color, BOLD, BG_WHITE, FG_BLUE, FG_CYAN, FG_RED, UNDERLINE};
+
+<span class="comment">// Create a new color object
+</span><span class="kw">let </span><span class="kw-2">mut </span>c = Color::new(<span class="kw-2">&amp;</span>[FG_CYAN]);
+c.add(<span class="kw-2">&amp;</span>[UNDERLINE]);
+c.println(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"Prints cyan text with an underline."</span>]).unwrap();
+
+<span class="comment">// Or just add them to New()
+</span><span class="kw">let </span>d = Color::new(<span class="kw-2">&amp;</span>[FG_CYAN, BOLD]);
+d.printf(<span class="string">"This prints bold cyan %s\n"</span>, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"too!."</span>]).unwrap();
+
+<span class="comment">// Mix up foreground and background colors, create new mixes!
+</span><span class="kw">let </span><span class="kw-2">mut </span>red = Color::new(<span class="kw-2">&amp;</span>[FG_RED]);
+
+<span class="kw">let </span>bold_red = red.add(<span class="kw-2">&amp;</span>[BOLD]).clone();
+bold_red.println(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"This will print text in bold red."</span>]).unwrap();
+
+<span class="kw">let </span>white_background = red.add(<span class="kw-2">&amp;</span>[BG_WHITE]).clone();
+white_background.println(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"Red text with White background."</span>]).unwrap();
+
+<span class="comment">// Use your own io::Write output
+</span>Color::new(<span class="kw-2">&amp;</span>[FG_BLUE]).fprintln(<span class="kw-2">&amp;mut </span>my_writer, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"blue color!"</span>]).unwrap();
+
+<span class="kw">let </span>blue = Color::new(<span class="kw-2">&amp;</span>[FG_BLUE]);
+blue.fprint(<span class="kw-2">&amp;mut </span>my_writer, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"This will print text in blue."</span>]).unwrap();</code></pre></div>
+<p>You can create <code>print_xxx</code> functions to simplify even more:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::{vals, Color, BOLD, FG_GREEN, FG_RED, NO_ARGS};
+
+<span class="comment">// Create a custom print function for convenient
+</span><span class="kw">let </span>red = Color::new(<span class="kw-2">&amp;</span>[FG_RED]).printf_func();
+red(<span class="string">"warning"</span>, NO_ARGS);
+red(<span class="string">"error: %s"</span>, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"file not found"</span>]);
+
+<span class="comment">// Mix up multiple attributes
+</span><span class="kw">let </span>notice = Color::new(<span class="kw-2">&amp;</span>[BOLD, FG_GREEN]).println_func();
+notice(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"don't forget this..."</span>]);</code></pre></div>
+<p>You can also <code>fprint_xxx</code> functions to pass your own writer:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::{vals, Color, BOLD, FG_BLUE, FG_GREEN};
+
+<span class="kw">let </span>blue = Color::new(<span class="kw-2">&amp;</span>[FG_BLUE]).fprintf_func();
+blue(<span class="kw-2">&amp;mut </span>my_writer, <span class="string">"important notice: %s"</span>, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"***"</span>]);
+
+<span class="comment">// Mix up with multiple attributes
+</span><span class="kw">let </span>success = Color::new(<span class="kw-2">&amp;</span>[BOLD, FG_GREEN]).fprintln_func();
+success(<span class="kw-2">&amp;mut </span>my_writer, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"don't forget this..."</span>]);</code></pre></div>
+<p>Or create <code>sprint_xxx</code> functions to mix strings with other non-colorized strings:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::{gofmt, vals, Color, BG_GREEN, FG_RED, FG_WHITE, FG_YELLOW};
+
+<span class="kw">let </span>yellow = Color::new(<span class="kw-2">&amp;</span>[FG_YELLOW]).sprint_func();
+<span class="kw">let </span>red = Color::new(<span class="kw-2">&amp;</span>[FG_RED]).sprint_func();
+
+<span class="macro">print!</span>(<span class="string">"{}"</span>, gofmt::sprintf(
+    <span class="string">"this is a %s and this is %s.\n"</span>,
+    <span class="kw-2">&amp;</span><span class="macro">vals!</span>[yellow(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"warning"</span>]), red(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"error"</span>])],
+));
+
+<span class="kw">let </span>info = Color::new(<span class="kw-2">&amp;</span>[FG_WHITE, BG_GREEN]).sprint_func();
+<span class="macro">print!</span>(<span class="string">"{}"</span>, gofmt::sprintf(<span class="string">"this %s rocks!\n"</span>, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[info(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"package"</span>])]));</code></pre></div>
+<p>Windows support is enabled by default. All print functions work as intended.
+However, only for the <code>sprint_xxx</code> functions, users should write to
+<a href="fn.output.html" title="fn color::output"><code>output</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::{gofmt, output, vals, green_string, Color, BG_GREEN, FG_WHITE, NO_ARGS};
+<span class="kw">use </span>std::io::Write;
+
+<span class="kw">let </span><span class="kw-2">mut </span>out = output();
+<span class="macro">write!</span>(out, <span class="string">"{}"</span>, gofmt::sprintf(<span class="string">"Windows support: %s"</span>, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[green_string(<span class="string">"PASS"</span>, NO_ARGS)])).unwrap();
+
+<span class="kw">let </span>info = Color::new(<span class="kw-2">&amp;</span>[FG_WHITE, BG_GREEN]).sprint_func();
+<span class="macro">write!</span>(out, <span class="string">"{}"</span>, gofmt::sprintf(<span class="string">"this %s rocks!\n"</span>, <span class="kw-2">&amp;</span><span class="macro">vals!</span>[info(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"package"</span>])])).unwrap();</code></pre></div>
+<p>Using with existing code is possible. Just use the <a href="fn.set.html" title="fn color::set"><code>set</code></a> function to set the
+standard output to the given parameters. That way a rewrite of an existing
+code is not required.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::{set, unset, BOLD, FG_MAGENTA, FG_YELLOW};
+
+<span class="comment">// Use handy standard colors.
+</span>set(<span class="kw-2">&amp;</span>[FG_YELLOW]);
+
+<span class="macro">println!</span>(<span class="string">"Existing text will be now in Yellow"</span>);
+<span class="macro">println!</span>(<span class="string">"This one {}"</span>, <span class="string">"too"</span>);
+
+unset(); <span class="comment">// don't forget to unset
+
+// You can mix up parameters
+</span>set(<span class="kw-2">&amp;</span>[FG_MAGENTA, BOLD]);
+
+<span class="macro">println!</span>(<span class="string">"All text will be now bold magenta."</span>);
+unset();</code></pre></div>
+<p>There might be a case where you want to disable color output (for example to
+pipe the standard output of your app to somewhere else). <code>Color</code> has support to
+disable colors both globally and for single color definition. For example
+suppose you have a CLI app and a <code>--no-color</code> bool flag. You can easily disable
+the color output with:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::set_no_color;
+
+<span class="kw">let </span>flag_no_color = <span class="bool-val">true</span>;
+<span class="kw">if </span>flag_no_color {
+    set_no_color(<span class="bool-val">true</span>); <span class="comment">// disables colorized output
+</span>}</code></pre></div>
+<p>You can also disable the color by setting the <code>NO_COLOR</code> environment variable
+to any value.</p>
+<p>It also has support for single color definitions (local). You can
+disable/enable color output on the fly:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>color::{vals, Color, FG_CYAN};
+
+<span class="kw">let </span><span class="kw-2">mut </span>c = Color::new(<span class="kw-2">&amp;</span>[FG_CYAN]);
+c.println(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"Prints cyan text"</span>]).unwrap();
+
+c.disable_color();
+c.println(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"This is printed without any color"</span>]).unwrap();
+
+c.enable_color();
+c.println(<span class="kw-2">&amp;</span><span class="macro">vals!</span>[<span class="string">"This prints again cyan..."</span>]).unwrap();</code></pre></div></div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="gofmt/index.html" title="mod color::gofmt">gofmt</a></dt><dd>A port of the subset of Go’s <code>fmt</code> package used by this crate.
+A port of the subset of Go’s <code>fmt</code> package that <code>fatih/color</code> relies on.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.vals.html" title="macro color::vals">vals</a></dt><dd>Builds a <code>Vec&lt;Value&gt;</code> — the Rust equivalent of a Go <code>...interface{}</code>
+argument list.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Attribute.html" title="struct color::Attribute">Attribute</a></dt><dd>Attribute defines a single SGR Code.</dd><dt><a class="struct" href="struct.Color.html" title="struct color::Color">Color</a></dt><dd>Color defines a custom color object which is defined by SGR parameters.</dd><dt><a class="struct" href="struct.SharedBuffer.html" title="struct color::SharedBuffer">Shared<wbr>Buffer</a></dt><dd>A cheaply clonable, shared, growable buffer.</dd><dt><a class="struct" href="struct.WriteError.html" title="struct color::WriteError">Write<wbr>Error</a></dt><dd>The error half of Go’s <code>(n int, err error)</code> print contract.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Value.html" title="enum color::Value">Value</a></dt><dd>A dynamically typed value, the Rust stand-in for Go’s <code>interface{}</code>.</dd><dt><a class="enum" href="enum.Writer.html" title="enum color::Writer">Writer</a></dt><dd>The <code>io.Writer</code> interface.</dd></dl><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><dl class="item-table"><dt><a class="constant" href="constant.BG_BLACK.html" title="constant color::BG_BLACK">BG_<wbr>BLACK</a></dt><dd>Black background.</dd><dt><a class="constant" href="constant.BG_BLUE.html" title="constant color::BG_BLUE">BG_BLUE</a></dt><dd>Blue background.</dd><dt><a class="constant" href="constant.BG_CYAN.html" title="constant color::BG_CYAN">BG_CYAN</a></dt><dd>Cyan background.</dd><dt><a class="constant" href="constant.BG_GREEN.html" title="constant color::BG_GREEN">BG_<wbr>GREEN</a></dt><dd>Green background.</dd><dt><a class="constant" href="constant.BG_HI_BLACK.html" title="constant color::BG_HI_BLACK">BG_<wbr>HI_<wbr>BLACK</a></dt><dd>Hi-intensity black (gray) background.</dd><dt><a class="constant" href="constant.BG_HI_BLUE.html" title="constant color::BG_HI_BLUE">BG_<wbr>HI_<wbr>BLUE</a></dt><dd>Hi-intensity blue background.</dd><dt><a class="constant" href="constant.BG_HI_CYAN.html" title="constant color::BG_HI_CYAN">BG_<wbr>HI_<wbr>CYAN</a></dt><dd>Hi-intensity cyan background.</dd><dt><a class="constant" href="constant.BG_HI_GREEN.html" title="constant color::BG_HI_GREEN">BG_<wbr>HI_<wbr>GREEN</a></dt><dd>Hi-intensity green background.</dd><dt><a class="constant" href="constant.BG_HI_MAGENTA.html" title="constant color::BG_HI_MAGENTA">BG_<wbr>HI_<wbr>MAGENTA</a></dt><dd>Hi-intensity magenta background.</dd><dt><a class="constant" href="constant.BG_HI_RED.html" title="constant color::BG_HI_RED">BG_<wbr>HI_<wbr>RED</a></dt><dd>Hi-intensity red background.</dd><dt><a class="constant" href="constant.BG_HI_WHITE.html" title="constant color::BG_HI_WHITE">BG_<wbr>HI_<wbr>WHITE</a></dt><dd>Hi-intensity white background.</dd><dt><a class="constant" href="constant.BG_HI_YELLOW.html" title="constant color::BG_HI_YELLOW">BG_<wbr>HI_<wbr>YELLOW</a></dt><dd>Hi-intensity yellow background.</dd><dt><a class="constant" href="constant.BG_MAGENTA.html" title="constant color::BG_MAGENTA">BG_<wbr>MAGENTA</a></dt><dd>Magenta background.</dd><dt><a class="constant" href="constant.BG_RED.html" title="constant color::BG_RED">BG_RED</a></dt><dd>Red background.</dd><dt><a class="constant" href="constant.BG_WHITE.html" title="constant color::BG_WHITE">BG_<wbr>WHITE</a></dt><dd>White background.</dd><dt><a class="constant" href="constant.BG_YELLOW.html" title="constant color::BG_YELLOW">BG_<wbr>YELLOW</a></dt><dd>Yellow background.</dd><dt><a class="constant" href="constant.BLINK_RAPID.html" title="constant color::BLINK_RAPID">BLINK_<wbr>RAPID</a></dt><dd>Rapid blink.</dd><dt><a class="constant" href="constant.BLINK_SLOW.html" title="constant color::BLINK_SLOW">BLINK_<wbr>SLOW</a></dt><dd>Slow blink.</dd><dt><a class="constant" href="constant.BOLD.html" title="constant color::BOLD">BOLD</a></dt><dd>Bold / increased intensity.</dd><dt><a class="constant" href="constant.CONCEALED.html" title="constant color::CONCEALED">CONCEALED</a></dt><dd>Concealed / hidden.</dd><dt><a class="constant" href="constant.CROSSED_OUT.html" title="constant color::CROSSED_OUT">CROSSED_<wbr>OUT</a></dt><dd>Crossed out / strike-through.</dd><dt><a class="constant" href="constant.FAINT.html" title="constant color::FAINT">FAINT</a></dt><dd>Faint / decreased intensity.</dd><dt><a class="constant" href="constant.FG_BLACK.html" title="constant color::FG_BLACK">FG_<wbr>BLACK</a></dt><dd>Black foreground.</dd><dt><a class="constant" href="constant.FG_BLUE.html" title="constant color::FG_BLUE">FG_BLUE</a></dt><dd>Blue foreground.</dd><dt><a class="constant" href="constant.FG_CYAN.html" title="constant color::FG_CYAN">FG_CYAN</a></dt><dd>Cyan foreground.</dd><dt><a class="constant" href="constant.FG_GREEN.html" title="constant color::FG_GREEN">FG_<wbr>GREEN</a></dt><dd>Green foreground.</dd><dt><a class="constant" href="constant.FG_HI_BLACK.html" title="constant color::FG_HI_BLACK">FG_<wbr>HI_<wbr>BLACK</a></dt><dd>Hi-intensity black (gray) foreground.</dd><dt><a class="constant" href="constant.FG_HI_BLUE.html" title="constant color::FG_HI_BLUE">FG_<wbr>HI_<wbr>BLUE</a></dt><dd>Hi-intensity blue foreground.</dd><dt><a class="constant" href="constant.FG_HI_CYAN.html" title="constant color::FG_HI_CYAN">FG_<wbr>HI_<wbr>CYAN</a></dt><dd>Hi-intensity cyan foreground.</dd><dt><a class="constant" href="constant.FG_HI_GREEN.html" title="constant color::FG_HI_GREEN">FG_<wbr>HI_<wbr>GREEN</a></dt><dd>Hi-intensity green foreground.</dd><dt><a class="constant" href="constant.FG_HI_MAGENTA.html" title="constant color::FG_HI_MAGENTA">FG_<wbr>HI_<wbr>MAGENTA</a></dt><dd>Hi-intensity magenta foreground.</dd><dt><a class="constant" href="constant.FG_HI_RED.html" title="constant color::FG_HI_RED">FG_<wbr>HI_<wbr>RED</a></dt><dd>Hi-intensity red foreground.</dd><dt><a class="constant" href="constant.FG_HI_WHITE.html" title="constant color::FG_HI_WHITE">FG_<wbr>HI_<wbr>WHITE</a></dt><dd>Hi-intensity white foreground.</dd><dt><a class="constant" href="constant.FG_HI_YELLOW.html" title="constant color::FG_HI_YELLOW">FG_<wbr>HI_<wbr>YELLOW</a></dt><dd>Hi-intensity yellow foreground.</dd><dt><a class="constant" href="constant.FG_MAGENTA.html" title="constant color::FG_MAGENTA">FG_<wbr>MAGENTA</a></dt><dd>Magenta foreground.</dd><dt><a class="constant" href="constant.FG_RED.html" title="constant color::FG_RED">FG_RED</a></dt><dd>Red foreground.</dd><dt><a class="constant" href="constant.FG_WHITE.html" title="constant color::FG_WHITE">FG_<wbr>WHITE</a></dt><dd>White foreground.</dd><dt><a class="constant" href="constant.FG_YELLOW.html" title="constant color::FG_YELLOW">FG_<wbr>YELLOW</a></dt><dd>Yellow foreground.</dd><dt><a class="constant" href="constant.ITALIC.html" title="constant color::ITALIC">ITALIC</a></dt><dd>Italic.</dd><dt><a class="constant" href="constant.NO_ARGS.html" title="constant color::NO_ARGS">NO_ARGS</a></dt><dd>The empty argument list, a convenience for the very common
+<code>f(format)</code> / <code>f(format, ...)</code> split in the helper functions.</dd><dt><a class="constant" href="constant.RESET.html" title="constant color::RESET">RESET</a></dt><dd>Resets all attributes.</dd><dt><a class="constant" href="constant.RESET_BLINKING.html" title="constant color::RESET_BLINKING">RESET_<wbr>BLINKING</a></dt><dd>Turns off blinking.</dd><dt><a class="constant" href="constant.RESET_BOLD.html" title="constant color::RESET_BOLD">RESET_<wbr>BOLD</a></dt><dd>Turns off bold/faint.</dd><dt><a class="constant" href="constant.RESET_CONCEALED.html" title="constant color::RESET_CONCEALED">RESET_<wbr>CONCEALED</a></dt><dd>Turns off conceal.</dd><dt><a class="constant" href="constant.RESET_CROSSED_OUT.html" title="constant color::RESET_CROSSED_OUT">RESET_<wbr>CROSSED_<wbr>OUT</a></dt><dd>Turns off crossed out.</dd><dt><a class="constant" href="constant.RESET_ITALIC.html" title="constant color::RESET_ITALIC">RESET_<wbr>ITALIC</a></dt><dd>Turns off italic.</dd><dt><a class="constant" href="constant.RESET_REVERSED.html" title="constant color::RESET_REVERSED">RESET_<wbr>REVERSED</a></dt><dd>Turns off reverse video.</dd><dt><a class="constant" href="constant.RESET_UNDERLINE.html" title="constant color::RESET_UNDERLINE">RESET_<wbr>UNDERLINE</a></dt><dd>Turns off underline.</dd><dt><a class="constant" href="constant.REVERSE_VIDEO.html" title="constant color::REVERSE_VIDEO">REVERSE_<wbr>VIDEO</a></dt><dd>Reverse video (swap foreground/background).</dd><dt><a class="constant" href="constant.UNDERLINE.html" title="constant color::UNDERLINE">UNDERLINE</a></dt><dd>Underline.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.bg_rgb.html" title="fn color::bg_rgb">bg_rgb</a></dt><dd>Port of <code>BgRGB(r, g, b int) *Color</code>.</dd><dt><a class="fn" href="fn.black.html" title="fn color::black">black</a></dt><dd><blockquote>
+Black is a convenient helper function to print with black foreground. A
+newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.black_string.html" title="fn color::black_string">black_<wbr>string</a></dt><dd><blockquote>
+BlackString is a convenient helper function to return a string with black
+foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.blue.html" title="fn color::blue">blue</a></dt><dd><blockquote>
+Blue is a convenient helper function to print with blue foreground. A
+newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.blue_string.html" title="fn color::blue_string">blue_<wbr>string</a></dt><dd><blockquote>
+BlueString is a convenient helper function to return a string with blue
+foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.cyan.html" title="fn color::cyan">cyan</a></dt><dd><blockquote>
+Cyan is a convenient helper function to print with cyan foreground. A
+newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.cyan_string.html" title="fn color::cyan_string">cyan_<wbr>string</a></dt><dd><blockquote>
+CyanString is a convenient helper function to return a string with cyan
+foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.equals.html" title="fn color::equals">equals</a></dt><dd>Port of <code>(*Color).Equals</code> including its <code>nil</code> receiver handling.</dd><dt><a class="fn" href="fn.error.html" title="fn color::error">error</a></dt><dd>Reads the global <code>Error</code> writer.</dd><dt><a class="fn" href="fn.green.html" title="fn color::green">green</a></dt><dd><blockquote>
+Green is a convenient helper function to print with green foreground. A
+newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.green_string.html" title="fn color::green_string">green_<wbr>string</a></dt><dd><blockquote>
+GreenString is a convenient helper function to return a string with green
+foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_black.html" title="fn color::hi_black">hi_<wbr>black</a></dt><dd><blockquote>
+HiBlack is a convenient helper function to print with hi-intensity black
+foreground. A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_black_string.html" title="fn color::hi_black_string">hi_<wbr>black_<wbr>string</a></dt><dd><blockquote>
+HiBlackString is a convenient helper function to return a string with
+hi-intensity black foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_blue.html" title="fn color::hi_blue">hi_blue</a></dt><dd><blockquote>
+HiBlue is a convenient helper function to print with hi-intensity blue
+foreground. A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_blue_string.html" title="fn color::hi_blue_string">hi_<wbr>blue_<wbr>string</a></dt><dd><blockquote>
+HiBlueString is a convenient helper function to return a string with
+hi-intensity blue foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_cyan.html" title="fn color::hi_cyan">hi_cyan</a></dt><dd><blockquote>
+HiCyan is a convenient helper function to print with hi-intensity cyan
+foreground. A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_cyan_string.html" title="fn color::hi_cyan_string">hi_<wbr>cyan_<wbr>string</a></dt><dd><blockquote>
+HiCyanString is a convenient helper function to return a string with
+hi-intensity cyan foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_green.html" title="fn color::hi_green">hi_<wbr>green</a></dt><dd><blockquote>
+HiGreen is a convenient helper function to print with hi-intensity green
+foreground. A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_green_string.html" title="fn color::hi_green_string">hi_<wbr>green_<wbr>string</a></dt><dd><blockquote>
+HiGreenString is a convenient helper function to return a string with
+hi-intensity green foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_magenta.html" title="fn color::hi_magenta">hi_<wbr>magenta</a></dt><dd><blockquote>
+HiMagenta is a convenient helper function to print with hi-intensity magenta
+foreground. A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_magenta_string.html" title="fn color::hi_magenta_string">hi_<wbr>magenta_<wbr>string</a></dt><dd><blockquote>
+HiMagentaString is a convenient helper function to return a string with
+hi-intensity magenta foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_red.html" title="fn color::hi_red">hi_red</a></dt><dd><blockquote>
+HiRed is a convenient helper function to print with hi-intensity red
+foreground. A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_red_string.html" title="fn color::hi_red_string">hi_<wbr>red_<wbr>string</a></dt><dd><blockquote>
+HiRedString is a convenient helper function to return a string with
+hi-intensity red foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_white.html" title="fn color::hi_white">hi_<wbr>white</a></dt><dd><blockquote>
+HiWhite is a convenient helper function to print with hi-intensity white
+foreground. A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_white_string.html" title="fn color::hi_white_string">hi_<wbr>white_<wbr>string</a></dt><dd><blockquote>
+HiWhiteString is a convenient helper function to return a string with
+hi-intensity white foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_yellow.html" title="fn color::hi_yellow">hi_<wbr>yellow</a></dt><dd><blockquote>
+HiYellow is a convenient helper function to print with hi-intensity yellow
+foreground. A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.hi_yellow_string.html" title="fn color::hi_yellow_string">hi_<wbr>yellow_<wbr>string</a></dt><dd><blockquote>
+HiYellowString is a convenient helper function to return a string with
+hi-intensity yellow foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.magenta.html" title="fn color::magenta">magenta</a></dt><dd><blockquote>
+Magenta is a convenient helper function to print with magenta foreground.
+A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.magenta_string.html" title="fn color::magenta_string">magenta_<wbr>string</a></dt><dd><blockquote>
+MagentaString is a convenient helper function to return a string with magenta
+foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.new.html" title="fn color::new">new</a></dt><dd>Port of <code>New(value ...Attribute) *Color</code>.</dd><dt><a class="fn" href="fn.new_colorable_stderr.html" title="fn color::new_colorable_stderr">new_<wbr>colorable_<wbr>stderr</a></dt><dd>Port of <code>colorable.NewColorableStderr()</code>.</dd><dt><a class="fn" href="fn.new_colorable_stdout.html" title="fn color::new_colorable_stdout">new_<wbr>colorable_<wbr>stdout</a></dt><dd>Port of <code>colorable.NewColorableStdout()</code>.</dd><dt><a class="fn" href="fn.no_color.html" title="fn color::no_color">no_<wbr>color</a></dt><dd>Reads the global <code>NoColor</code> flag.</dd><dt><a class="fn" href="fn.output.html" title="fn color::output">output</a></dt><dd>Reads the global <code>Output</code> writer.</dd><dt><a class="fn" href="fn.red.html" title="fn color::red">red</a></dt><dd><blockquote>
+Red is a convenient helper function to print with red foreground. A
+newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.red_string.html" title="fn color::red_string">red_<wbr>string</a></dt><dd><blockquote>
+RedString is a convenient helper function to return a string with red
+foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.rgb.html" title="fn color::rgb">rgb</a></dt><dd>Port of <code>RGB(r, g, b int) *Color</code>.</dd><dt><a class="fn" href="fn.set.html" title="fn color::set">set</a></dt><dd>Port of <code>Set(p ...Attribute) *Color</code>.</dd><dt><a class="fn" href="fn.set_error.html" title="fn color::set_error">set_<wbr>error</a></dt><dd>Assigns the global <code>Error</code> writer — the equivalent of <code>color.Error = w</code>.</dd><dt><a class="fn" href="fn.set_no_color.html" title="fn color::set_no_color">set_<wbr>no_<wbr>color</a></dt><dd>Assigns the global <code>NoColor</code> flag — the equivalent of <code>color.NoColor = v</code>.</dd><dt><a class="fn" href="fn.set_output.html" title="fn color::set_output">set_<wbr>output</a></dt><dd>Assigns the global <code>Output</code> writer — the equivalent of <code>color.Output = w</code>.</dd><dt><a class="fn" href="fn.set_stderr_available.html" title="fn color::set_stderr_available">set_<wbr>stderr_<wbr>available</a></dt><dd>Sets whether standard error is considered available.</dd><dt><a class="fn" href="fn.set_stdout_available.html" title="fn color::set_stdout_available">set_<wbr>stdout_<wbr>available</a></dt><dd>Sets whether standard output is considered available.</dd><dt><a class="fn" href="fn.std_err.html" title="fn color::std_err">std_err</a></dt><dd>Port of <code>stdErr</code>.</dd><dt><a class="fn" href="fn.std_out.html" title="fn color::std_out">std_out</a></dt><dd>Port of <code>stdOut</code>.</dd><dt><a class="fn" href="fn.stderr_available.html" title="fn color::stderr_available">stderr_<wbr>available</a></dt><dd>Reports whether standard error is considered available (<code>os.Stderr != nil</code>).</dd><dt><a class="fn" href="fn.stdout_available.html" title="fn color::stdout_available">stdout_<wbr>available</a></dt><dd>Reports whether standard output is considered available (<code>os.Stdout != nil</code>).</dd><dt><a class="fn" href="fn.stdout_is_terminal.html" title="fn color::stdout_is_terminal">stdout_<wbr>is_<wbr>terminal</a></dt><dd>Port of <code>stdoutIsTerminal</code>.</dd><dt><a class="fn" href="fn.unset.html" title="fn color::unset">unset</a></dt><dd>Port of <code>Unset()</code>.</dd><dt><a class="fn" href="fn.white.html" title="fn color::white">white</a></dt><dd><blockquote>
+White is a convenient helper function to print with white foreground. A
+newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.white_string.html" title="fn color::white_string">white_<wbr>string</a></dt><dd><blockquote>
+WhiteString is a convenient helper function to return a string with white
+foreground.</blockquote>
+</dd><dt><a class="fn" href="fn.yellow.html" title="fn color::yellow">yellow</a></dt><dd><blockquote>
+Yellow is a convenient helper function to print with yellow foreground.
+A newline is appended to format by default.</blockquote>
+</dd><dt><a class="fn" href="fn.yellow_string.html" title="fn color::yellow_string">yellow_<wbr>string</a></dt><dd><blockquote>
+YellowString is a convenient helper function to return a string with yellow
+foreground.</blockquote>
+</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.Result.html" title="type color::Result">Result</a></dt><dd>Result of the printing functions: the byte count on success, or the byte
+count plus the error on failure.</dd></dl></section></div></main></body></html>

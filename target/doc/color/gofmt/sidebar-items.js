@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["go_quote","sprint","sprintf","sprintln"]};
