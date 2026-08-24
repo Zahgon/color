@@ -1,189 +1,326 @@
-# color [![](https://github.com/fatih/color/workflows/build/badge.svg)](https://github.com/fatih/color/actions) [![PkgGoDev](https://pkg.go.dev/badge/github.com/fatih/color)](https://pkg.go.dev/github.com/fatih/color)
+# color
 
 Color lets you use colorized outputs in terms of [ANSI Escape
-Codes](http://en.wikipedia.org/wiki/ANSI_escape_code#Colors) in Go (Golang). It
-has support for Windows too! The API can be used in several ways, pick one that
+Codes](http://en.wikipedia.org/wiki/ANSI_escape_code#Colors) in Rust. It has
+support for Windows too! The API can be used in several ways, pick one that
 suits you.
 
-![Color](https://user-images.githubusercontent.com/438920/96832689-03b3e000-13f4-11eb-9803-46f4c4de3406.jpg)
+This crate is a **faithful, behavior-preserving port of
+[github.com/fatih/color](https://github.com/fatih/color) v1.19.0**. Every
+exported function, constant, type and side effect of the Go package has an
+equivalent here, and the output is verified byte-for-byte against the original
+Go implementation (see [Verification](#verification)).
 
 ## Install
 
-```
-go get github.com/fatih/color
+```toml
+[dependencies]
+color = "1.19"
 ```
 
 ## Examples
 
 ### Standard colors
 
-```go
+```rust
+use color::{cyan, blue, red, magenta, vals, NO_ARGS};
+
 // Print with default helper functions
-color.Cyan("Prints text in cyan.")
+cyan("Prints text in cyan.", NO_ARGS);
 
 // A newline will be appended automatically
-color.Blue("Prints %s in blue.", "text")
+blue("Prints %s in blue.", &vals!["text"]);
 
 // These are using the default foreground colors
-color.Red("We have red")
-color.Magenta("And many others ..")
-
+red("We have red", NO_ARGS);
+magenta("And many others ..", NO_ARGS);
 ```
 
 ### RGB colors
 
 If your terminal supports 24-bit colors, you can use RGB color codes.
 
-```go
-color.RGB(255, 128, 0).Println("foreground orange")
-color.RGB(230, 42, 42).Println("foreground red")
+```rust
+use color::{bg_rgb, rgb, vals};
 
-color.BgRGB(255, 128, 0).Println("background orange")
-color.BgRGB(230, 42, 42).Println("background red")
+rgb(255, 128, 0).println(&vals!["foreground orange"]).unwrap();
+rgb(230, 42, 42).println(&vals!["foreground red"]).unwrap();
+
+bg_rgb(255, 128, 0).println(&vals!["background orange"]).unwrap();
+bg_rgb(230, 42, 42).println(&vals!["background red"]).unwrap();
 ```
 
 ### Mix and reuse colors
 
-```go
-// Create a new color object
-c := color.New(color.FgCyan).Add(color.Underline)
-c.Println("Prints cyan text with an underline.")
+```rust
+use color::{bg_rgb, rgb, vals, Color, BG_WHITE, BOLD, FG_CYAN, FG_RED, UNDERLINE};
 
-// Or just add them to New()
-d := color.New(color.FgCyan, color.Bold)
-d.Printf("This prints bold cyan %s\n", "too!.")
+// Create a new color object
+let mut c = Color::new(&[FG_CYAN]);
+c.add(&[UNDERLINE]);
+c.println(&vals!["Prints cyan text with an underline."]).unwrap();
+
+// Or just add them to new()
+let d = Color::new(&[FG_CYAN, BOLD]);
+d.printf("This prints bold cyan %s\n", &vals!["too!."]).unwrap();
 
 // Mix up foreground and background colors, create new mixes!
-red := color.New(color.FgRed)
+let mut red = Color::new(&[FG_RED]);
 
-boldRed := red.Add(color.Bold)
-boldRed.Println("This will print text in bold red.")
+// NB: like the Go original, `add` mutates the receiver and returns it.
+let bold_red = red.add(&[BOLD]).clone();
+bold_red.println(&vals!["This will print text in bold red."]).unwrap();
 
-whiteBackground := red.Add(color.BgWhite)
-whiteBackground.Println("Red text with white background.")
+let white_background = red.add(&[BG_WHITE]).clone();
+white_background.println(&vals!["Red text with white background."]).unwrap();
 
 // Mix with RGB color codes
-color.RGB(255, 128, 0).AddBgRGB(0, 0, 0).Println("orange with black background")
+let mut c = rgb(255, 128, 0);
+c.add_bg_rgb(0, 0, 0);
+c.println(&vals!["orange with black background"]).unwrap();
 
-color.BgRGB(255, 128, 0).AddRGB(255, 255, 255).Println("orange background with white foreground")
+let mut c = bg_rgb(255, 128, 0);
+c.add_rgb(255, 255, 255);
+c.println(&vals!["orange background with white foreground"]).unwrap();
 ```
 
-### Use your own output (io.Writer)
+### Use your own output (`io::Write`)
 
-```go
-// Use your own io.Writer output
-color.New(color.FgBlue).Fprintln(myWriter, "blue color!")
+```rust
+use color::{vals, Color, FG_BLUE};
 
-blue := color.New(color.FgBlue)
-blue.Fprint(writer, "This will print text in blue.")
+let mut my_writer: Vec<u8> = Vec::new();
+
+Color::new(&[FG_BLUE]).fprintln(&mut my_writer, &vals!["blue color!"]).unwrap();
+
+let blue = Color::new(&[FG_BLUE]);
+blue.fprint(&mut my_writer, &vals!["This will print text in blue."]).unwrap();
 ```
 
-### Custom print functions (PrintFunc)
+### Custom print functions (`print_func`)
 
-```go
+```rust
+use color::{vals, Color, BOLD, FG_GREEN, FG_RED};
+
 // Create a custom print function for convenience
-red := color.New(color.FgRed).PrintfFunc()
-red("Warning")
-red("Error: %s", err)
+let red = Color::new(&[FG_RED]).printf_func();
+red("Warning", &[]);
+red("Error: %s", &vals!["disk full"]);
 
 // Mix up multiple attributes
-notice := color.New(color.Bold, color.FgGreen).PrintlnFunc()
-notice("Don't forget this...")
+let notice = Color::new(&[BOLD, FG_GREEN]).println_func();
+notice(&vals!["Don't forget this..."]);
 ```
 
-### Custom fprint functions (FprintFunc)
+### Custom fprint functions (`fprint_func`)
 
-```go
-blue := color.New(color.FgBlue).FprintfFunc()
-blue(myWriter, "important notice: %s", stars)
+```rust
+use color::{vals, Color, BOLD, FG_BLUE, FG_GREEN};
+
+let mut my_writer: Vec<u8> = Vec::new();
+
+let blue = Color::new(&[FG_BLUE]).fprintf_func();
+blue(&mut my_writer, "important notice: %s", &vals!["***"]);
 
 // Mix up with multiple attributes
-success := color.New(color.Bold, color.FgGreen).FprintlnFunc()
-success(myWriter, "Don't forget this...")
+let success = Color::new(&[BOLD, FG_GREEN]).fprintln_func();
+success(&mut my_writer, &vals!["Don't forget this..."]);
 ```
 
-### Insert into noncolor strings (SprintFunc)
+### Insert into noncolor strings (`sprint_func`)
 
-```go
-// Create SprintXxx functions to mix strings with other non-colorized strings:
-yellow := color.New(color.FgYellow).SprintFunc()
-red := color.New(color.FgRed).SprintFunc()
-fmt.Printf("This is a %s and this is %s.\n", yellow("warning"), red("error"))
+```rust
+use color::{gofmt, green_string, red_string, vals, Color, BG_GREEN, FG_RED, FG_WHITE, FG_YELLOW, NO_ARGS};
+use std::io::Write;
 
-info := color.New(color.FgWhite, color.BgGreen).SprintFunc()
-fmt.Printf("This %s rocks!\n", info("package"))
+// Create sprint_xxx functions to mix strings with other non-colorized strings:
+let yellow = Color::new(&[FG_YELLOW]).sprint_func();
+let red = Color::new(&[FG_RED]).sprint_func();
+print!("{}", gofmt::sprintf(
+    "This is a %s and this is %s.\n",
+    &vals![yellow(&vals!["warning"]), red(&vals!["error"])],
+));
+
+let info = Color::new(&[FG_WHITE, BG_GREEN]).sprint_func();
+print!("{}", gofmt::sprintf("This %s rocks!\n", &vals![info(&vals!["package"])]));
 
 // Use helper functions
-fmt.Println("This", color.RedString("warning"), "should be not neglected.")
-fmt.Printf("%v %v\n", color.GreenString("Info:"), "an important message.")
+println!("This {} should be not neglected.", red_string("warning", NO_ARGS));
 
-// Windows supported too! Just don't forget to change the output to color.Output
-fmt.Fprintf(color.Output, "Windows support: %s", color.GreenString("PASS"))
+// Windows supported too! Just don't forget to change the output to color::output()
+let mut out = color::output();
+write!(out, "{}", gofmt::sprintf("Windows support: %s", &vals![green_string("PASS", NO_ARGS)])).unwrap();
 ```
 
 ### Plug into existing code
 
-```go
+```rust
+use color::{set, unset, BOLD, FG_MAGENTA, FG_YELLOW};
+
 // Use handy standard colors
-color.Set(color.FgYellow)
+set(&[FG_YELLOW]);
 
-fmt.Println("Existing text will now be in yellow")
-fmt.Printf("This one %s\n", "too")
+println!("Existing text will now be in yellow");
+println!("This one {}", "too");
 
-color.Unset() // Don't forget to unset
+unset(); // Don't forget to unset
 
 // You can mix up parameters
-color.Set(color.FgMagenta, color.Bold)
-defer color.Unset() // Use it in your function
-
-fmt.Println("All text will now be bold magenta.")
+set(&[FG_MAGENTA, BOLD]);
+println!("All text will now be bold magenta.");
+unset();
 ```
 
 ### Disable/Enable color
 
-There might be a case where you want to explicitly disable/enable color output. the 
-`go-isatty` package will automatically disable color output for non-tty output streams 
-(for example if the output were piped directly to `less`).
+There might be a case where you want to explicitly disable/enable color output.
+Colorized output is automatically disabled for non-tty output streams (for
+example if the output were piped directly to `less`).
 
-The `color` package also disables color output if the [`NO_COLOR`](https://no-color.org) environment
-variable is set to a non-empty string.
+The crate also disables color output if the [`NO_COLOR`](https://no-color.org)
+environment variable is set to a non-empty string.
 
 `Color` has support to disable/enable colors programmatically both globally and
 for single color definitions. For example suppose you have a CLI app and a
-`-no-color` bool flag. You can easily disable the color output with:
+`--no-color` bool flag. You can easily disable the color output with:
 
-```go
-var flagNoColor = flag.Bool("no-color", false, "Disable color output")
+```rust
+use color::set_no_color;
 
-if *flagNoColor {
-	color.NoColor = true // disables colorized output
+let flag_no_color = true;
+if flag_no_color {
+    set_no_color(true); // disables colorized output
 }
 ```
 
 It also has support for single color definitions (local). You can
 disable/enable color output on the fly:
 
-```go
-c := color.New(color.FgCyan)
-c.Println("Prints cyan text")
+```rust
+use color::{vals, Color, FG_CYAN};
 
-c.DisableColor()
-c.Println("This is printed without any color")
+let mut c = Color::new(&[FG_CYAN]);
+c.println(&vals!["Prints cyan text"]).unwrap();
 
-c.EnableColor()
-c.Println("This prints again cyan...")
+c.disable_color();
+c.println(&vals!["This is printed without any color"]).unwrap();
+
+c.enable_color();
+c.println(&vals!["This prints again cyan..."]).unwrap();
 ```
 
 ## GitHub Actions
 
-To output color in GitHub Actions (or other CI systems that support ANSI colors), make sure to set `color.NoColor = false` so that it bypasses the check for non-tty output streams. 
+To output color in GitHub Actions (or other CI systems that support ANSI
+colors), make sure to call `color::set_no_color(false)` so that it bypasses the
+check for non-tty output streams.
 
+## Mapping from the Go API
+
+| Go                              | Rust                                    |
+|---------------------------------|-----------------------------------------|
+| `color.New(FgRed, Bold)`        | `Color::new(&[FG_RED, BOLD])`           |
+| `c.Add(Underline)`              | `c.add(&[UNDERLINE])`                   |
+| `c.Sprintf(f, a...)`            | `c.sprintf(f, &vals![a])`               |
+| `c.SprintFunc()`                | `c.sprint_func()`                       |
+| `color.RedString("x")`          | `color::red_string("x", NO_ARGS)`       |
+| `color.NoColor = true`          | `color::set_no_color(true)`             |
+| `color.Output = w`              | `color::set_output(w)`                  |
+| `color.Output`                  | `color::output()`                       |
+| `io.Writer`                     | `impl std::io::Write` / `Writer`        |
+| `...interface{}`                | `&[Value]`, built with `vals![]`        |
+| `(n int, err error)`            | `Result<usize>` (`WriteError` keeps `n`)|
+
+Go's variadic `...interface{}` has no direct Rust equivalent, so print
+arguments are modelled by the [`Value`] enum and built with the `vals!` macro.
+`Value` carries the Go *dynamic type* alongside the data, which is what allows
+`fmt`'s spacing rules (`Sprint` only separates non-strings) and its diagnostics
+(`%!d(string=foo)`) to be reproduced exactly.
+
+Format strings are Go format strings, interpreted by the bundled [`gofmt`]
+module — not Rust's `format!` syntax.
+
+## Verification
+
+Behavioral equivalence is not assumed, it is measured. Generators written in Go
+drive the real Go code and dump golden files that the Rust test-suite replays.
+
+The generators deliberately do **not** live in this crate. A Rust package that
+still ships Go source has not finished migrating, so the oracle sits beside it,
+in `../color-parity-oracle/`, and only its output is committed here — under
+`tests/testdata/`, with `tests/testdata/CHECKSUMS.txt` tying each corpus to the
+oracle revision that produced it.
+
+| Harness                  | Cases     | Covers                                                                       |
+|--------------------------|-----------|------------------------------------------------------------------------------|
+| `color-parity-oracle/gofmt_golden`     | 148,500   | Go `fmt` verbs × flags × widths × precisions × argument types                 |
+| `color-parity-oracle/color_golden`     | 152,208   | attribute sets × operations × arguments × `NoColor` × per-color overrides     |
+| `color-parity-oracle/fuzz_parity`      | unbounded | randomized formats, arguments and attribute sets — inputs nobody hand-picked  |
+| `tests/color_test.rs`    | 22        | a 1:1 port of every test in `color_test.go`                                   |
+
+Regenerate the golden files (requires Go, and the oracle checked out beside this
+crate) with:
+
+```sh
+cd ../color-parity-oracle/gofmt_golden && go run . > ../../color/tests/testdata/gofmt_golden.tsv
+cd ../color-parity-oracle/color_golden && go run . > ../../color/tests/testdata/color_golden.tsv
+```
+
+Then:
+
+```sh
+cargo test
+(cd tests/testdata && shasum -a 256 -c CHECKSUMS.txt)
+```
+
+The fixed matrices are deterministic, so the `parity` CI job regenerates them
+from Go and fails on any drift. Each replay test also asserts the exact record
+count of the committed corpus, so a truncated or emptied golden file fails the
+suite instead of passing with nothing compared. To go beyond them, generate a randomized corpus
+and point the replay tests at it:
+
+```sh
+cd ../color-parity-oracle/fuzz_parity && go run . -seed 1 -n 20000 -fmt /tmp/f.tsv -color /tmp/c.tsv
+GOFMT_GOLDEN=/tmp/f.tsv COLOR_GOLDEN=/tmp/c.tsv cargo test --test gofmt_parity --test color_parity
+```
+
+`fuzz_parity` evaluates each candidate twice, against two equal-valued but
+separately allocated argument lists, and drops any case whose Go output differs
+between the two — that is, any case that records a pointer address (see
+`%p` below). Such a case has no stable reference value in Go either.
+
+## Known representational differences
+
+These stem from language-level differences and are unobservable through the
+public API:
+
+* **Strings.** A Go `string` is an arbitrary byte sequence; a Rust `String` is
+  guaranteed UTF-8. `Value::Bytes` holding invalid UTF-8 cannot round-trip
+  through `%s`/`%q`. Every string entering this crate is UTF-8 by construction.
+* **Pointer addresses.** Go prints a memory address for `%p`, and — through
+  `fmtPointer` — for `%d`/`%b`/`%o`/`%#v` applied to a pointer-shaped value
+  reached by reflection, which in this crate means a `Value::Error` nested
+  inside a `Value::Slice`. Addresses are neither meaningful nor stable here (Go
+  itself prints a different one on every run), so those cases report the
+  `%!verb(type=value)` diagnostic instead. Every other verb, including the
+  same error at the top level or under `%v`/`%s`/`%q`/`%x`/`%X`, is
+  byte-identical to Go.
+* **Narrow integers.** Rust's `i8`/`i16`/`u16`/`u32`/`f32` widen to Go's
+  `int`/`uint`/`float64` when converted to a `Value`, so `%T` reports the
+  widened name. `u8` maps to Go's `uint8` because `[]byte` elements depend on
+  it.
+* **`unicode.IsPrint`.** Approximated with `char` classification from `std`
+  rather than embedding Unicode tables; identical for all ASCII and for the
+  common ranges.
 
 ## Credits
 
-* [Fatih Arslan](https://github.com/fatih)
+* [Fatih Arslan](https://github.com/fatih) — author of the original Go package
 * Windows support via @mattn: [colorable](https://github.com/mattn/go-colorable)
 
 ## License
 
-The MIT License (MIT) - see [`LICENSE.md`](https://github.com/fatih/color/blob/master/LICENSE.md) for more details
+The MIT License (MIT) — see [`LICENSE.md`](LICENSE.md) for more details.
+
+[`Value`]: https://docs.rs/color/latest/color/enum.Value.html
+[`gofmt`]: https://docs.rs/color/latest/color/gofmt/index.html

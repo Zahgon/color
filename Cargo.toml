@@ -1,0 +1,24 @@
+[package]
+name = "color"
+version = "1.19.0"
+edition = "2021"
+rust-version = "1.70"
+description = "Color package for Rust — a faithful port of github.com/fatih/color. ANSI color/SGR output to the terminal."
+license = "MIT"
+repository = "https://github.com/fatih/color"
+readme = "README.md"
+keywords = ["ansi", "color", "terminal", "sgr", "console"]
+categories = ["command-line-interface"]
+
+[lib]
+name = "color"
+path = "src/lib.rs"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_Console",
+] }
+
+[profile.test]
+opt-level = 0

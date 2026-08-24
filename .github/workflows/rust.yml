@@ -1,0 +1,83 @@
+name: build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    name: Test & Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --all-targets
+
+      - name: Doc tests
+        run: cargo test --doc
+
+      - name: Corpus integrity
+        shell: bash
+        run: cd tests/testdata && shasum -a 256 -c CHECKSUMS.txt
+
+  # Regenerates the golden files from the original Go package and fails if the
+  # Rust port has drifted from it. The generators are Go, so they are not part
+  # of this crate: they are checked out beside it from their own repository.
+  parity:
+    name: Go parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the crate
+        uses: actions/checkout@v4
+        with:
+          path: color
+
+      - name: Check out the Go parity oracle
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/color-parity-oracle
+          path: color-parity-oracle
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify the oracle is the one that produced the committed corpora
+        working-directory: color-parity-oracle
+        run: shasum -a 256 -c ../color/tests/testdata/CHECKSUMS.txt --ignore-missing
+
+      - name: Regenerate golden files from the Go implementation
+        run: |
+          set -e
+          (cd color-parity-oracle/gofmt_golden && go run . > ../../color/tests/testdata/gofmt_golden.tsv)
+          (cd color-parity-oracle/color_golden && go run . > ../../color/tests/testdata/color_golden.tsv)
+
+      - name: Fail on any drift from the committed corpora
+        working-directory: color
+        run: git diff --exit-code -- tests/testdata
+
+      - name: Verify byte-for-byte parity with Go
+        working-directory: color
+        run: cargo test --test gofmt_parity --test color_parity

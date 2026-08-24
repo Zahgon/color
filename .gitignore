@@ -1,0 +1,11 @@
+/target
+**/*.rs.bk
+Cargo.lock.orig
+
+# Coverage artefacts
+/lcov.info
+/coverage
+llvm-cov-target/
+
+# macOS
+.DS_Store

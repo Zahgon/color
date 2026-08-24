@@ -1,0 +1,18 @@
+# SHA-256 of the committed golden corpora, and of the Go oracle programs that
+# produced them. The oracle is not part of this crate; it lives beside it in
+# ../color-parity-oracle/, because a Rust migration that still ships Go source
+# has not finished migrating.
+#
+# This file ties the two together. It lets a third party confirm that the corpus
+# in this repository is the output of that recorded oracle, without having to
+# trust either. See the Verification section of README.md for the exact commands.
+#
+# Corpora, 148,500 and 152,208 records, verified from tests/testdata
+27406347790d196b8991c946b926bf89742e455f137040a4273fcc6eb069ce6c  gofmt_golden.tsv
+54aabb48856519c320d77fc88ae2fad96e5ff7a958a73810881ed17711e29b54  color_golden.tsv
+#
+# Oracle programs, verified from ../color-parity-oracle
+80f2a143853a4b533083a1252b3716b4353f0eddbe43f67a1edd03f78be5f22b  color_golden/main.go
+c90a2530904acb1ccaaa6769524b777d3ae67de13ba5bd233628b5d3269b6002  fuzz_parity/main.go
+143cf64999c64b364ea854b42b4b56c4eeef80436da9f44e7c3bd87ab3f8c8a8  gen_printable/main.go
+555f1253d61fe59d3d327d98b08d5fc7426a291f0776b660e82e88c83d2117ba  gofmt_golden/main.go
